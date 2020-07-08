@@ -21,8 +21,8 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
-
+        self.capacity = capacity
+        self.storage = [None] * capacity
 
     def get_num_slots(self):
         """
@@ -35,6 +35,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.capacity
 
 
     def get_load_factor(self):
@@ -44,7 +45,14 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        total = 0
 
+        for key in self.storage:
+            if key is not None:
+                total += 1
+
+        return (total / self.capacity)
+            
 
     def fnv1(self, key):
         """
@@ -54,7 +62,14 @@ class HashTable:
         """
 
         # Your code here
+        hash = 14695981039346656037 ## offset_basis
+        kb = key.encode()
 
+        for k in kb:
+            hash = hash ^ k
+            hash = hash * 1099511628211 # FNV_Prime
+            hash &= 0xffffffffffffffff # Converts the number to a 64-bit number if not already
+        return hash
 
     def djb2(self, key):
         """
@@ -69,9 +84,10 @@ class HashTable:
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
-        """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        """        
+
+        return self.fnv1(key) % self.capacity
+        # return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -81,8 +97,22 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # Gives us index for storage
+        i = self.hash_index(key)
 
+        return self.insert_at_head(key, value, i)
+            
+    def insert_at_head(self, key, value, i):
+        node = HashTableEntry(key, value) # Make the new node
+
+        # If slot is empty, assign node as self.head
+        if self.storage[i] is None:
+            self.storage[i] = node
+        # If slot already has stuff in it, lets swap current head with new node
+        else:
+            node.next = self.storage[i]
+            self.storage[i] = node
+            
 
     def delete(self, key):
         """
@@ -93,7 +123,27 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        i = self.hash_index(key)
 
+        current = self.storage[i]
+
+        if current.key == key:
+            # current is first item so just redirect what is self.storage[i]
+            self.storage[i] = self.storage[i].next
+            return self.storage[i]
+
+        prev = current
+        current = current.next
+        while current is not None:
+            # If match found, then redirect prev.next to cur.next, current node will get deleted automatically
+            if current.key is key:
+                prev.next = current.next
+                return current.value
+            else:
+                prev = prev.next
+                current = current.next
+                
+        print("KEY NOT FOUND!")
 
     def get(self, key):
         """
@@ -104,7 +154,25 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # With index, we have access to the NODE
+        i = self.hash_index(key)
+        ### self.storage[i].key/value to access the things inside the nodes.
+        return self.find(key, i)
+        # return self.storage[i]
 
+    def find(self, key, i):
+        current = self.storage[i]
+
+        # While loop to get through all of the chain-links in that index
+        while current is not None:
+            if current.key == key:
+                # We found it, we can return it
+                return current.value
+
+            current = current.next
+
+        # This means we didn't find it after we broke the loop
+        return None 
 
     def resize(self, new_capacity):
         """
@@ -115,6 +183,23 @@ class HashTable:
         """
         # Your code here
 
+        # Change capacity of self.capacity
+        self.capacity = new_capacity
+        # Copy of self.storage
+        oldStorage = self.storage
+        # Resetting self.storage to new capacity
+        self.storage = [None] * self.capacity
+
+        
+        for i in oldStorage:
+            self.put(i.key, i.value)
+
+            current = i.next
+            # If there's a chain link on a bucket, then we need to go down the chain
+            while current is not None:
+                self.put(current.key, current.value)
+
+                current = current.next
 
 
 if __name__ == "__main__":
