@@ -1,5 +1,6 @@
 # Your code here
-
+import math
+import random
 
 def slowfun_too_slow(x, y):
     v = math.pow(x, y)
@@ -9,6 +10,9 @@ def slowfun_too_slow(x, y):
 
     return v
 
+# Creating the cache
+cache = {}
+
 def slowfun(x, y):
     """
     Rewrite slowfun_too_slow() in here so that the program produces the same
@@ -16,7 +20,23 @@ def slowfun(x, y):
     """
     # Your code here
 
+    ### Game changer with this function is we just have to check if the two ints are in the cache and we don't have to calculate the factorial every time. (Because the two ints will always create the same answer)
 
+    # If two ints are not in cache, use math
+    if (x, y) not in cache:
+        # Calculations for factorial here
+        v = math.pow(x, y)
+        v = math.factorial(v)
+        v //= (x + y)
+        v %= 982451653
+        # Add the two ints and answer to the cache key
+        cache[(x, y)] = v
+
+
+        return v
+
+    else:
+        return cache[(x, y)]
 
 # Do not modify below this line!
 

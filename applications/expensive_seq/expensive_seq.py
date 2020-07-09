@@ -1,10 +1,21 @@
 # Your code here
-
+cache = {}
 
 def expensive_seq(x, y, z):
     # Your code here
 
+    # We're going to check if the three ints are in cache before we do any math
+    if (x, y, z) not in cache:
+        # Do maths
+        if x <= 0: 
+            return y + z
+        if x >  0: 
+            cache[(x, y, z)] = expensive_seq(x-1,y+1,z) + expensive_seq(x-2,y+2,z*2) + expensive_seq(x-3,y+3,z*3)
+            
+        return cache[(x, y, z)]
 
+    else:
+        return cache[(x, y, z)]
 
 if __name__ == "__main__":
     for i in range(10):
